@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mediaforge</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎵 mediaforge</h1>
+      <p class="subtitle">Download audio &amp; video from YouTube, SoundCloud, and 1000+ sites</p>
+    </header>
+
+    <main>
+      <div class="card">
+        <div class="url-row">
+          <input
+            type="url"
+            id="url-input"
+            placeholder="Paste a URL — YouTube, SoundCloud, Vimeo, and more..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="fetch-btn" class="btn btn-secondary">Fetch Info</button>
+        </div>
+
+        <div id="media-info" class="media-info hidden">
+          <div class="info-title" id="info-title"></div>
+          <div class="info-meta">
+            <span id="info-uploader"></span>
+            <span class="separator">·</span>
+            <span id="info-duration"></span>
+          </div>
+        </div>
+
+        <div class="options-row">
+          <div class="option-group">
+            <label>Type</label>
+            <div class="toggle-group">
+              <button class="toggle-btn active" data-type="audio">Audio</button>
+              <button class="toggle-btn" data-type="video">Video</button>
+            </div>
+          </div>
+
+          <div class="option-group" id="format-group">
+            <label for="format-select">Format</label>
+            <select id="format-select">
+              {% for f in audio_formats %}
+              <option value="{{ f }}" {% if f == 'mp3' %}selected{% endif %}>{{ f.upper() }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="option-group" id="quality-group">
+            <label for="quality-select">Quality</label>
+            <select id="quality-select">
+              {% for q in audio_qualities %}
+              <option value="{{ q }}" {% if q == '192' %}selected{% endif %}>{{ q }} kbps</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <button id="download-btn" class="btn btn-primary">⬇️ Download</button>
+
+        <div id="status" class="status hidden"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const AUDIO_FORMATS = {{ audio_formats | tojson }};
+    const VIDEO_FORMATS = {{ video_formats | tojson }};
+  </script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

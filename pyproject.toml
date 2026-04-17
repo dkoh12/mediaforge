@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mediaforge"
+version = "0.1.0"
+description = "🎵 Download audio and video from YouTube, SoundCloud, and 1000+ sites"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "yt-dlp>=2024.1.0",
+    "click>=8.0.0",
+    "flask>=3.0.0",
+]
+
+[project.scripts]
+mediaforge = "mediaforge.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mediaforge*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

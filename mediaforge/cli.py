@@ -1,0 +1,77 @@
+import click
+from pathlib import Path
+
+from .downloader import (
+    get_info,
+    download_audio,
+    download_video,
+    AUDIO_QUALITIES,
+    AUDIO_FORMATS,
+    VIDEO_FORMATS,
+)
+
+
+def _format_duration(seconds: int) -> str:
+    mins, secs = divmod(seconds, 60)
+    hrs, mins = divmod(mins, 60)
+    if hrs:
+        return f"{hrs}:{mins:02d}:{secs:02d}"
+    return f"{mins}:{secs:02d}"
+
+
+@click.group()
+@click.version_option()
+def main():
+    """🎵 mediaforge — download audio and video from YouTube, SoundCloud, and 1000+ sites"""
+    pass
+
+
+@main.command()
+@click.argument("url")
+@click.option("--quality", "-q", default="192", show_default=True,
+              type=click.Choice(AUDIO_QUALITIES), help="Audio bitrate (kbps)")
+@click.option("--format", "-f", "fmt", default="mp3", show_default=True,
+              type=click.Choice(AUDIO_FORMATS), help="Output audio format")
+@click.option("--output", "-o", default=".", type=click.Path(path_type=Path),
+              help="Output directory", show_default=True)
+def audio(url, quality, fmt, output):
+    """Download audio from a URL as MP3 or other audio formats."""
+    click.echo(f"🔍 Fetching info...")
+    try:
+        info = get_info(url)
+        click.echo(f"🎵 {info.title}")
+        click.echo(f"   by {info.uploader} · {_format_duration(info.duration)}")
+        click.echo(f"⬇️  Downloading as {fmt.upper()} ({quality}kbps)...")
+        path = download_audio(url, output, quality=quality, fmt=fmt)
+        click.echo(f"✅ Saved: {path}")
+    except Exception as e:
+        raise click.ClickException(str(e))
+
+
+@main.command()
+@click.argument("url")
+@click.option("--format", "-f", "fmt", default="mp4", show_default=True,
+              type=click.Choice(VIDEO_FORMATS), help="Output video format")
+@click.option("--output", "-o", default=".", type=click.Path(path_type=Path),
+              help="Output directory", show_default=True)
+def video(url, fmt, output):
+    """Download video from a URL."""
+    click.echo(f"🔍 Fetching info...")
+    try:
+        info = get_info(url)
+        click.echo(f"🎬 {info.title}")
+        click.echo(f"   by {info.uploader} · {_format_duration(info.duration)}")
+        click.echo(f"⬇️  Downloading as {fmt.upper()}...")
+        path = download_video(url, output, fmt=fmt)
+        click.echo(f"✅ Saved: {path}")
+    except Exception as e:
+        raise click.ClickException(str(e))
+
+
+@main.command()
+@click.option("--port", "-p", default=5000, show_default=True, help="Port to run the GUI on")
+@click.option("--debug", is_flag=True, help="Run in debug mode")
+def gui(port, debug):
+    """Launch the mediaforge web GUI in your browser."""
+    from mediaforge.gui.app import run
+    run(port=port, debug=debug)

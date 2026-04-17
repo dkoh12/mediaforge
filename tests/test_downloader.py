@@ -116,6 +116,30 @@ def test_download_audio_all_formats(tmp_path, fmt):
     assert result.suffix == f".{fmt}"
 
 
+def test_download_audio_embed_thumbnail(tmp_path):
+    with patch("yt_dlp.YoutubeDL") as MockYDL:
+        _mock_audio_download(MockYDL, tmp_path)
+        result = download_audio("https://example.com/video", tmp_path, embed_thumbnail=True)
+
+    # Check EmbedThumbnail postprocessor was included
+    call_kwargs = MockYDL.call_args[0][0]
+    pp_keys = [p["key"] for p in call_kwargs["postprocessors"]]
+    assert "EmbedThumbnail" in pp_keys
+    assert call_kwargs["writethumbnail"] is True
+    assert result.suffix == ".mp3"
+
+
+def test_download_audio_no_thumbnail_by_default(tmp_path):
+    with patch("yt_dlp.YoutubeDL") as MockYDL:
+        _mock_audio_download(MockYDL, tmp_path)
+        download_audio("https://example.com/video", tmp_path)
+
+    call_kwargs = MockYDL.call_args[0][0]
+    pp_keys = [p["key"] for p in call_kwargs["postprocessors"]]
+    assert "EmbedThumbnail" not in pp_keys
+    assert call_kwargs["writethumbnail"] is False
+
+
 @pytest.mark.parametrize("quality", AUDIO_QUALITIES)
 def test_download_audio_all_qualities(tmp_path, quality):
     with patch("yt_dlp.YoutubeDL") as MockYDL:

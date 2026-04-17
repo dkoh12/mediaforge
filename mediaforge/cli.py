@@ -5,18 +5,11 @@ from .downloader import (
     get_info,
     download_audio,
     download_video,
+    format_duration,
     AUDIO_QUALITIES,
     AUDIO_FORMATS,
     VIDEO_FORMATS,
 )
-
-
-def _format_duration(seconds: int) -> str:
-    mins, secs = divmod(seconds, 60)
-    hrs, mins = divmod(mins, 60)
-    if hrs:
-        return f"{hrs}:{mins:02d}:{secs:02d}"
-    return f"{mins}:{secs:02d}"
 
 
 @click.group()
@@ -36,11 +29,11 @@ def main():
               help="Output directory", show_default=True)
 def audio(url, quality, fmt, output):
     """Download audio from a URL as MP3 or other audio formats."""
-    click.echo(f"🔍 Fetching info...")
+    click.echo("🔍 Fetching info...")
     try:
         info = get_info(url)
         click.echo(f"🎵 {info.title}")
-        click.echo(f"   by {info.uploader} · {_format_duration(info.duration)}")
+        click.echo(f"   by {info.uploader} · {format_duration(info.duration)}")
         click.echo(f"⬇️  Downloading as {fmt.upper()} ({quality}kbps)...")
         path = download_audio(url, output, quality=quality, fmt=fmt)
         click.echo(f"✅ Saved: {path}")
@@ -56,11 +49,11 @@ def audio(url, quality, fmt, output):
               help="Output directory", show_default=True)
 def video(url, fmt, output):
     """Download video from a URL."""
-    click.echo(f"🔍 Fetching info...")
+    click.echo("🔍 Fetching info...")
     try:
         info = get_info(url)
         click.echo(f"🎬 {info.title}")
-        click.echo(f"   by {info.uploader} · {_format_duration(info.duration)}")
+        click.echo(f"   by {info.uploader} · {format_duration(info.duration)}")
         click.echo(f"⬇️  Downloading as {fmt.upper()}...")
         path = download_video(url, output, fmt=fmt)
         click.echo(f"✅ Saved: {path}")

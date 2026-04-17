@@ -27,15 +27,17 @@ def main():
               type=click.Choice(AUDIO_FORMATS), help="Output audio format")
 @click.option("--output", "-o", default=".", type=click.Path(path_type=Path),
               help="Output directory", show_default=True)
-def audio(url, quality, fmt, output):
+@click.option("--thumbnail", "-t", is_flag=True, help="Embed thumbnail as album art")
+def audio(url, quality, fmt, output, thumbnail):
     """Download audio from a URL as MP3 or other audio formats."""
     click.echo("🔍 Fetching info...")
     try:
         info = get_info(url)
         click.echo(f"🎵 {info.title}")
         click.echo(f"   by {info.uploader} · {format_duration(info.duration)}")
-        click.echo(f"⬇️  Downloading as {fmt.upper()} ({quality}kbps)...")
-        path = download_audio(url, output, quality=quality, fmt=fmt)
+        thumb_str = " + thumbnail" if thumbnail else ""
+        click.echo(f"⬇️  Downloading as {fmt.upper()} ({quality}kbps){thumb_str}...")
+        path = download_audio(url, output, quality=quality, fmt=fmt, embed_thumbnail=thumbnail)
         click.echo(f"✅ Saved: {path}")
     except Exception as e:
         raise click.ClickException(str(e))

@@ -64,6 +64,7 @@ def download_audio(
     output_dir: Path,
     quality: str = "192",
     fmt: str = "mp3",
+    embed_thumbnail: bool = False,
 ) -> Path:
     """Download audio from a URL and convert to the specified format."""
     if quality not in AUDIO_QUALITIES:
@@ -74,18 +75,23 @@ def download_audio(
     output_dir.mkdir(parents=True, exist_ok=True)
     output_template = str(output_dir / "%(title)s.%(ext)s")
 
+    postprocessors = [
+        {
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": fmt,
+            "preferredquality": quality,
+        }
+    ]
+    if embed_thumbnail:
+        postprocessors.append({"key": "EmbedThumbnail"})
+
     opts = {
         "format": "bestaudio/best",
         "outtmpl": output_template,
         "quiet": True,
         "no_warnings": True,
-        "postprocessors": [
-            {
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": fmt,
-                "preferredquality": quality,
-            }
-        ],
+        "writethumbnail": embed_thumbnail,
+        "postprocessors": postprocessors,
     }
 
     with yt_dlp.YoutubeDL(opts) as ydl:

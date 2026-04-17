@@ -49,6 +49,7 @@ def download():
     media_type = request.json.get("type", "audio")
     fmt = request.json.get("format", "mp3")
     quality = request.json.get("quality", "192")
+    embed_thumbnail = request.json.get("embed_thumbnail", False)
 
     if not url:
         return jsonify({"error": "No URL provided"}), 400
@@ -57,7 +58,7 @@ def download():
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             if media_type == "audio":
-                out_path = download_audio(url, tmp_path, quality=quality, fmt=fmt)
+                out_path = download_audio(url, tmp_path, quality=quality, fmt=fmt, embed_thumbnail=embed_thumbnail)
                 mimetype = AUDIO_MIMETYPES.get(fmt, "application/octet-stream")
             else:
                 out_path = download_video(url, tmp_path, fmt=fmt)

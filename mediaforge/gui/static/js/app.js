@@ -8,6 +8,8 @@
   const infoDuration = document.getElementById("info-duration");
   const formatSelect = document.getElementById("format-select");
   const qualityGroup = document.getElementById("quality-group");
+  const thumbnailGroup = document.getElementById("thumbnail-group");
+  const thumbnailCheck = document.getElementById("thumbnail-check");
   const statusEl    = document.getElementById("status");
   const toggleBtns  = document.querySelectorAll(".toggle-btn");
 
@@ -29,6 +31,7 @@
       .map(f => `<option value="${f}">${f.toUpperCase()}</option>`)
       .join("");
     qualityGroup.style.display = mediaType === "audio" ? "" : "none";
+    thumbnailGroup.style.display = mediaType === "audio" ? "" : "none";
   }
 
   // --- fetch info ---
@@ -78,6 +81,7 @@
         type: mediaType,
         format: formatSelect.value,
         quality: document.getElementById("quality-select")?.value || "192",
+        embed_thumbnail: mediaType === "audio" && thumbnailCheck.checked,
       };
 
       const res = await fetch("/download", {

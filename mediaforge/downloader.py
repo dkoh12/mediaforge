@@ -6,6 +6,19 @@ AUDIO_QUALITIES = ("128", "192", "320")
 AUDIO_FORMATS = ("mp3", "m4a", "wav", "flac", "opus")
 VIDEO_FORMATS = ("mp4", "webm", "mkv")
 
+AUDIO_MIMETYPES = {
+    "mp3": "audio/mpeg",
+    "m4a": "audio/mp4",
+    "wav": "audio/wav",
+    "flac": "audio/flac",
+    "opus": "audio/ogg",
+}
+VIDEO_MIMETYPES = {
+    "mp4": "video/mp4",
+    "webm": "video/webm",
+    "mkv": "video/x-matroska",
+}
+
 
 @dataclass
 class MediaInfo:
@@ -13,6 +26,15 @@ class MediaInfo:
     uploader: str
     duration: int   # seconds
     url: str
+
+
+def format_duration(seconds: int) -> str:
+    """Format seconds into H:MM:SS or M:SS string."""
+    mins, secs = divmod(seconds, 60)
+    hrs, mins = divmod(mins, 60)
+    if hrs:
+        return f"{hrs}:{mins:02d}:{secs:02d}"
+    return f"{mins}:{secs:02d}"
 
 
 def get_info(url: str) -> MediaInfo:
@@ -26,6 +48,15 @@ def get_info(url: str) -> MediaInfo:
         duration=info.get("duration", 0),
         url=url,
     )
+
+
+def _find_output_file(output_dir: Path, fmt: str) -> Path:
+    """Find the actual file yt-dlp wrote (filename may be sanitized)."""
+    matches = list(output_dir.glob(f"*.{fmt}"))
+    if not matches:
+        raise FileNotFoundError(f"No .{fmt} file found in {output_dir}")
+    # Return most recently modified in case of multiple
+    return max(matches, key=lambda p: p.stat().st_mtime)
 
 
 def download_audio(
@@ -58,10 +89,9 @@ def download_audio(
     }
 
     with yt_dlp.YoutubeDL(opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-        title = info.get("title", "download")
+        ydl.extract_info(url, download=True)
 
-    return output_dir / f"{title}.{fmt}"
+    return _find_output_file(output_dir, fmt)
 
 
 def download_video(
@@ -85,7 +115,6 @@ def download_video(
     }
 
     with yt_dlp.YoutubeDL(opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-        title = info.get("title", "download")
+        ydl.extract_info(url, download=True)
 
-    return output_dir / f"{title}.{fmt}"
+    return _find_output_file(output_dir, fmt)

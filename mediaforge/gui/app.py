@@ -2,7 +2,17 @@ import io
 import tempfile
 from pathlib import Path
 from flask import Flask, request, send_file, render_template, jsonify
-from mediaforge.downloader import get_info, download_audio, download_video, AUDIO_QUALITIES, AUDIO_FORMATS, VIDEO_FORMATS
+from mediaforge.downloader import (
+    get_info,
+    download_audio,
+    download_video,
+    format_duration,
+    AUDIO_QUALITIES,
+    AUDIO_FORMATS,
+    VIDEO_FORMATS,
+    AUDIO_MIMETYPES,
+    VIDEO_MIMETYPES,
+)
 
 app = Flask(__name__)
 
@@ -23,11 +33,10 @@ def info():
         return jsonify({"error": "No URL provided"}), 400
     try:
         meta = get_info(url)
-        mins, secs = divmod(meta.duration, 60)
         return jsonify({
             "title": meta.title,
             "uploader": meta.uploader,
-            "duration": f"{mins}:{secs:02d}",
+            "duration": format_duration(meta.duration),
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -49,12 +58,13 @@ def download():
             tmp_path = Path(tmp)
             if media_type == "audio":
                 out_path = download_audio(url, tmp_path, quality=quality, fmt=fmt)
+                mimetype = AUDIO_MIMETYPES.get(fmt, "application/octet-stream")
             else:
                 out_path = download_video(url, tmp_path, fmt=fmt)
+                mimetype = VIDEO_MIMETYPES.get(fmt, "application/octet-stream")
 
             buf = io.BytesIO(out_path.read_bytes())
             buf.seek(0)
-            mimetype = "audio/mpeg" if fmt == "mp3" else f"{'audio' if media_type == 'audio' else 'video'}/{fmt}"
 
             return send_file(
                 buf,
